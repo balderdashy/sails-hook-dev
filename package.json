@@ -1,6 +1,6 @@
 {
   "name": "sails-hook-dev",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Hook for Sails.js full of development utilities.",
   "main": "index.js",
   "scripts": {
