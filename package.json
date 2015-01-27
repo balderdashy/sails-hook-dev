@@ -1,0 +1,26 @@
+{
+  "name": "sails-hook-dev",
+  "version": "0.0.0",
+  "description": "Hook for Sails.js full of development utilities.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:balderdashy/sails-hook-dev.git"
+  },
+  "keywords": [
+    "sails.js",
+    "hook",
+    "development",
+    "dependencies",
+    "monitoring"
+  ],
+  "author": "Mike McNeil",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/balderdashy/sails-hook-dev/issues"
+  },
+  "homepage": "https://github.com/balderdashy/sails-hook-dev"
+}
