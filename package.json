@@ -6,10 +6,6 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "repository": {
-    "type": "git",
-    "url": "git@github.com:balderdashy/sails-hook-dev.git"
-  },
   "keywords": [
     "sails.js",
     "hook",
@@ -26,5 +22,12 @@
   "dependencies": {
     "fs-extra": "^0.15.0",
     "lodash": "^3.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/balderdashy/sails-hook-dev.git"
+  },
+  "sails": {
+    "isHook": true
   }
 }
