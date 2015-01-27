@@ -54,7 +54,7 @@ module.exports = function (sails) {
         // block access to the other shadow routes in below
         // (i.e. /dev/*)
         '/dev/*': function (req, res, next) {
-          if (process.env.NODE_ENV==='production') {
+          if (process.env.NODE_ENV==='production' && !sails.config.dev.enabled) {
             return res.notFound();
           }
           return next();

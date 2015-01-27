@@ -22,5 +22,9 @@
   "bugs": {
     "url": "https://github.com/balderdashy/sails-hook-dev/issues"
   },
-  "homepage": "https://github.com/balderdashy/sails-hook-dev"
+  "homepage": "https://github.com/balderdashy/sails-hook-dev",
+  "dependencies": {
+    "fs-extra": "^0.15.0",
+    "lodash": "^3.0.0"
+  }
 }
