@@ -33,6 +33,13 @@ module.exports = function (sails) {
       return done();
     },
 
+    defaults:{
+      dev: {
+        // If set, `enabled` will force this hook to be live, even in production.
+        enabled: false
+      }
+    },
+
     routes: {
       before: {
         // Show the available dev hook things
