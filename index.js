@@ -97,6 +97,16 @@ module.exports = function (sails) {
           return res.json({Before: before, After: after, Diff: diff});
         },
 
+        // Get enviroment variables
+        'get /dev/env': function(req, res) {
+          return res.json(process.env);
+        },
+
+        // Get sails.config
+        'get /dev/config': function(req, res) {
+          return res.json(req._sails.config);
+        },
+
         // Get current memory usage
         'get /dev/memory': function(req, res) {
           return res.json(process.memoryUsage());
