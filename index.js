@@ -27,7 +27,7 @@ module.exports = function (sails) {
     // Run when sails loads-- be sure and call `next()`.
     // (before `config/boostrap.js`)
     initialize: function (done) {
-      if (process.env.NODE_ENV==='production' && (!sails.config.dev || !sails.config.dev.enabled)) {
+      if (process.env.NODE_ENV==='production' && (!_.isObject(sails.config.dev) || !sails.config.dev.enabled)) {
         return done();
       }
       return done();
@@ -44,7 +44,7 @@ module.exports = function (sails) {
       before: {
         // Show the available dev hook things
         'get /dev': function (req, res){
-          if (process.env.NODE_ENV === 'production' && (!sails.config.dev || !sails.config.dev.enabled)) {
+          if (process.env.NODE_ENV === 'production' && (!_.isObject(sails.config.dev) || !sails.config.dev.enabled)) {
             return res.notFound();
           }
           return res.send(''+
@@ -64,7 +64,7 @@ module.exports = function (sails) {
         // block access to the other shadow routes in below
         // (i.e. /dev/*)
         '/dev/*': function (req, res, next) {
-          if (process.env.NODE_ENV==='production' && (!sails.config.dev || !sails.config.dev.enabled)) {
+          if (process.env.NODE_ENV==='production' && (!_.isObject(sails.config.dev) || !sails.config.dev.enabled)) {
             return res.notFound();
           }
           return next();
