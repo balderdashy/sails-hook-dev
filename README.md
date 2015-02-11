@@ -1,11 +1,17 @@
 #sails-hook-dev
 
 
+The diagnostic routes exposed by this hook will work when your app is in development mode (i.e. `NODE_ENV` != "production")
+
 ### Install
+
+In your Sails project:
 
 ```
 npm install sails-hook-dev --save
 ```
+
+
 
 
 ### Use
