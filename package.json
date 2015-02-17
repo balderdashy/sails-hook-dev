@@ -20,8 +20,9 @@
   },
   "homepage": "https://github.com/balderdashy/sails-hook-dev",
   "dependencies": {
-    "fs-extra": "^0.15.0",
-    "lodash": "^3.0.0"
+    "fs-extra": "^0.16.3",
+    "lodash": "^3.2.0",
+    "pretty-bytes": "^1.0.3"
   },
   "repository": {
     "type": "git",

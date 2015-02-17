@@ -4,9 +4,18 @@
 
 var path = require('path');
 var fsx = require('fs-extra');
-var _ = require('lodash');
+var isObject = require('lodash/Lang/isObject');
+var reduce = require('lodash/Collection/reduce');
+var prettyBytes = require('pretty-bytes')
 
 
+function prettifyObject(memoryUsage) {
+  memoryUsage.residentSetSize = memoryUsage.rss + ' B (' + prettyBytes(memoryUsage.rss) + ')';
+  delete memoryUsage.rss;
+  memoryUsage.heapTotal = memoryUsage.heapTotal + ' B (' + prettyBytes(memoryUsage.heapTotal) + ')';
+  memoryUsage.heapUsed = memoryUsage.heapUsed + ' B (' + prettyBytes(memoryUsage.heapUsed) + ')';
+  return memoryUsage;
+};
 
 
 /**
@@ -36,11 +45,13 @@ module.exports = function (sails) {
         // Warning: Do not set this to true if this is **ACTUAL** production!  It can reveals system information
         // that may make your app vulnerable to attacks or give away sensitive user information.
         enabled: false,
-        
+
         requestLogger: {
           // If set, `logRequests` will log the beginning of every reqeust  (even in production!)
+          // If set to 'never', it will not log regardless of the environment
           onBegin: false,
           // If set, `logRequests` will log the end of every reqeust (even in production!)
+          // If set to 'never', it will not log regardless of the environment
           onEnd: true
         }
       }
@@ -48,7 +59,7 @@ module.exports = function (sails) {
 
     routes: {
       before: {
-        
+
         // Log every request
         // set `sails.config.dev.requestLogger.onEnd` and/or `sails.config.dev.requestLogger.onBegin` to true
         // for default captains logging (in verbose mode) or set them to functions to implement your own custom
@@ -65,7 +76,17 @@ module.exports = function (sails) {
         //}
         '/*': function (req, res, next) {
           // Skip in production, unless logger onBegin is forcibly enabled
-          if (process.env.NODE_ENV !== 'production' || (_.isObject(sails.config.dev) && _.isObject(sails.config.dev.requestLogger) && sails.config.dev.requestLogger.onBegin)) {
+          if (!isObject(sails.config.dev) || !isObject(sails.config.dev.requestLogger)) {
+            sails.config.dev.requestLogger = {
+              onBegin: false,
+              onBeginDev: true,
+              onEnd: true,
+              onEndDev: true
+            }
+          }
+
+          if ((process.env.NODE_ENV !== 'production' && sails.config.dev.requestLogger.onBegin !== 'never') ||
+            sails.config.dev.requestLogger.onBegin !== 'never') {
             // Custom logger
               if (_.isFunction(sails.config.dev.requestLogger.onBegin)) {
                 sails.config.dev.requestLogger.onBegin({
@@ -81,18 +102,19 @@ module.exports = function (sails) {
                 sails.log.verbose(' -> '+req.method.toUpperCase()+' '+req.path+'');
               }
           }
-          
+
           // Skip in production, unless logger onEnd is forcibly enabled
-          if (process.env.NODE_ENV !== 'production' || (_.isObject(sails.config.dev) && _.isObject(sails.config.dev.requestLogger) && sails.config.dev.requestLogger.onEnd)) {
+          if ((process.env.NODE_ENV !== 'production' && sails.config.dev.requestLogger.onBegin !== 'never') ||
+            sails.config.dev.requestLogger.onEnd !== 'never') {
             // When the request is finished...
             res.once('finish', function () {
-              
+
               var metadata = {
                 method: req.method,
                 path: req.path,
                 responseTime: _getMilisecondsElapsedSince( req._startTime )
               };
-              
+
               // Custom logger
               if (_.isFunction(sails.config.dev.requestLogger.onEnd)) {
                 sails.config.dev.requesetLogger.onEnd(metadata, undefined, {
@@ -102,19 +124,30 @@ module.exports = function (sails) {
               }
               // Default logger
               else {
-                sails.log.verbose(' -> '+metadata.method.toUpperCase()+' '+metadata.path+'   ( -> '+metadata.responseTime+'ms)');
+                if (typeof res._headers['content-length'] === 'undefined') {
+                  res._headers['content-length'] = 0;
+                }
+
+                var color = 32; // green
+                var status = res.statusCode;
+
+                if (status >= 500) color = 31; // red
+                else if (status >= 400) color = 33; // yellow
+                else if (status >= 300) color = 36; // cyan
+
+                sails.log.verbose(' -> '+metadata.method.toUpperCase()+' '+metadata.path+ ' \x1b[' +color+ 'm' +res.statusCode+ '\x1b[0m   ( -> '+metadata.responseTime+'ms, '+prettyBytes(parseInt(res._headers['content-length'], 10))+')');
               }
             });
           }
-          
-          
+
+
           // Onwards to our app code!
           next();
         },
-        
+
         // Show the available dev hook things
         'get /dev': function (req, res){
-          if (process.env.NODE_ENV === 'production' && (!_.isObject(sails.config.dev) || !sails.config.dev.enabled)) {
+          if (process.env.NODE_ENV === 'production' && (!isObject(sails.config.dev) || !sails.config.dev.enabled)) {
             return res.notFound();
           }
           return res.send(''+
@@ -128,13 +161,15 @@ module.exports = function (sails) {
             '<a href="/dev/session">See current user session</a>'+'<br/>'+
             '<a href="/dev/memory">See current memory usage</a>'+'<br/>'+
             '<a href="/dev/dependencies">See actual versions of node_module dependencies</a>'+'<br/>'+
+            '<a href="/dev/config">See whole Sails configuration</a>'+'<br/>'+
+            '<a href="/dev/env">See loaded Evnironment variables</a>'+'<br/>'+
           '');
         },
 
         // block access to the other shadow routes in below
         // (i.e. /dev/*)
         '/dev/*': function (req, res, next) {
-          if (process.env.NODE_ENV==='production' && (!_.isObject(sails.config.dev) || !sails.config.dev.enabled)) {
+          if (process.env.NODE_ENV==='production' && (!isObject(sails.config.dev) || !sails.config.dev.enabled)) {
             return res.notFound();
           }
           return next();
@@ -153,8 +188,8 @@ module.exports = function (sails) {
 
         // Run garbage collector (but only if node was started up with the `--expose-gc` flag)
         'put /dev/gc': function(req, res) {
-          if (!process.gc) {
-            return res.send('gc() not exposed.  Try lifting your app with the --expose-gc flag enabled next time.');
+          if (!global.gc) {
+            return res.send('gc() not exposed.  Try lifting your app via \'node --expose-gc app.js\'.');
           }
           var before = process.memoryUsage();
           global.gc();
@@ -164,7 +199,7 @@ module.exports = function (sails) {
             heapTotal: before.heapTotal - after.heapTotal,
             heapUsed: before.heapUsed - after.heapUsed
           };
-          return res.json({Before: before, After: after, Diff: diff});
+          return res.json({ Before: prettifyObject(before), After: prettifyObject(after), Diff: prettifyObject(diff) });
         },
 
         // Get enviroment variables
@@ -179,13 +214,13 @@ module.exports = function (sails) {
 
         // Get current memory usage
         'get /dev/memory': function(req, res) {
-          return res.json(process.memoryUsage());
+          return res.json(prettifyObject(process.memoryUsage()));
         },
 
         // Get actual version of dependencies in the node_modules folder
         'get /dev/dependencies': function (req, res) {
           var dependencies = fsx.readJsonSync(path.resolve(sails.config.appPath, 'package.json')).dependencies;
-          return res.json(_.reduce(dependencies, function (memo, semverRange, depName){
+          return res.json(reduce(dependencies, function (memo, semverRange, depName){
             var actualDependencyVersion = fsx.readJsonSync(path.resolve(sails.config.appPath, path.join('node_modules',depName,'package.json'))).version;
             memo[depName] = actualDependencyVersion;
             return memo;
@@ -196,7 +231,7 @@ module.exports = function (sails) {
     }
 
   };
-  
+
 };
 
 
