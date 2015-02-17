@@ -6,20 +6,14 @@ var path = require('path');
 var fsx = require('fs-extra');
 var isObject = require('lodash/Lang/isObject');
 var reduce = require('lodash/Collection/reduce');
+var prettyBytes = require('pretty-bytes')
 
-function bytesToSize(bytes) {
-  if (bytes === 0) return '0 Byte';
-  var k = 1000;
-  var sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
-  var i = Math.floor(Math.log(Math.abs(bytes)) / Math.log(k));
-  return (bytes / Math.pow(k, i)).toPrecision(3) + ' ' + sizes[i];
-};
 
 function prettifyObject(memoryUsage) {
-  memoryUsage.residentSetSize = memoryUsage.rss + ' Bytes (' + bytesToSize(memoryUsage.rss) + ')';
+  memoryUsage.residentSetSize = memoryUsage.rss + ' B (' + prettyBytes(memoryUsage.rss) + ')';
   delete memoryUsage.rss;
-  memoryUsage.heapTotal = memoryUsage.heapTotal + ' Bytes (' + bytesToSize(memoryUsage.heapTotal) + ')';
-  memoryUsage.heapUsed = memoryUsage.heapUsed + ' Bytes (' + bytesToSize(memoryUsage.heapUsed) + ')';
+  memoryUsage.heapTotal = memoryUsage.heapTotal + ' B (' + prettyBytes(memoryUsage.heapTotal) + ')';
+  memoryUsage.heapUsed = memoryUsage.heapUsed + ' B (' + prettyBytes(memoryUsage.heapUsed) + ')';
   return memoryUsage;
 };
 
@@ -42,21 +36,91 @@ module.exports = function (sails) {
     // Run when sails loads-- be sure and call `next()`.
     // (before `config/boostrap.js`)
     initialize: function (done) {
-      if (process.env.NODE_ENV==='production' && (!isObject(sails.config.dev) || !sails.config.dev.enabled)) {
-        return done();
-      }
       return done();
     },
 
     defaults:{
       dev: {
-        // If set, `enabled` will force this hook to be live, even in production.
-        enabled: false
+        // If set, `enabled` will force the secret page for this hook to be live, even in production.
+        // Warning: Do not set this to true if this is **ACTUAL** production!  It can reveals system information
+        // that may make your app vulnerable to attacks or give away sensitive user information.
+        enabled: false,
+
+        requestLogger: {
+          // If set, `logRequests` will log the beginning of every reqeust  (even in production!)
+          onBegin: false,
+          // If set, `logRequests` will log the end of every reqeust (even in production!)
+          onEnd: true
+        }
       }
     },
 
     routes: {
       before: {
+
+        // Log every request
+        // set `sails.config.dev.requestLogger.onEnd` and/or `sails.config.dev.requestLogger.onBegin` to true
+        // for default captains logging (in verbose mode) or set them to functions to implement your own custom
+        // logger.  If a function is provided, it will be treated as a machine with no exits- like:
+        //
+        // function myCustomLogger(inputs, unused, env){
+        //   // => env.req;
+        //   // => env.res;
+        //   // => env.req._sails;
+        //
+        //   // => inputs.method
+        //   // => inputs.path
+        //   // => inputs.responseTime  (this one is only available onEnd)
+        //}
+        '/*': function (req, res, next) {
+          // Skip in production, unless logger onBegin is forcibly enabled
+          if (process.env.NODE_ENV !== 'production' || (_.isObject(sails.config.dev) && _.isObject(sails.config.dev.requestLogger) && sails.config.dev.requestLogger.onBegin)) {
+            // Custom logger
+              if (_.isFunction(sails.config.dev.requestLogger.onBegin)) {
+                sails.config.dev.requestLogger.onBegin({
+                  path: req.path,
+                  method: req.method
+                }, undefined, {
+                  req: req,
+                  res: res
+                });
+              }
+              // Default logger
+              else {
+                sails.log.verbose(' -> '+req.method.toUpperCase()+' '+req.path+'');
+              }
+          }
+
+          // Skip in production, unless logger onEnd is forcibly enabled
+          if (process.env.NODE_ENV !== 'production' || (_.isObject(sails.config.dev) && _.isObject(sails.config.dev.requestLogger) && sails.config.dev.requestLogger.onEnd)) {
+            // When the request is finished...
+            res.once('finish', function () {
+
+              var metadata = {
+                method: req.method,
+                path: req.path,
+                responseTime: _getMilisecondsElapsedSince( req._startTime )
+              };
+
+              // Custom logger
+              if (_.isFunction(sails.config.dev.requestLogger.onEnd)) {
+                sails.config.dev.requesetLogger.onEnd(metadata, undefined, {
+                  req: req,
+                  res: res
+                });
+              }
+              // Default logger
+              else {
+                sails.log.verbose(' -> '+metadata.method.toUpperCase()+' '+metadata.path+'   ( -> '+metadata.responseTime+'ms)');
+              }
+            });
+          }
+
+
+          // Onwards to our app code!
+          next();
+        },
+
         // Show the available dev hook things
         'get /dev': function (req, res){
           if (process.env.NODE_ENV === 'production' && (!isObject(sails.config.dev) || !sails.config.dev.enabled)) {
@@ -143,5 +207,12 @@ module.exports = function (sails) {
     }
 
   };
+
 };
 
+
+
+
+function _getMilisecondsElapsedSince (startTime) {
+  return new Date() - startTime;
+}
