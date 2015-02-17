@@ -48,8 +48,10 @@ module.exports = function (sails) {
 
         requestLogger: {
           // If set, `logRequests` will log the beginning of every reqeust  (even in production!)
+          // If set to 'never', it will not log regardless of the environment
           onBegin: false,
           // If set, `logRequests` will log the end of every reqeust (even in production!)
+          // If set to 'never', it will not log regardless of the environment
           onEnd: true
         }
       }
@@ -74,7 +76,17 @@ module.exports = function (sails) {
         //}
         '/*': function (req, res, next) {
           // Skip in production, unless logger onBegin is forcibly enabled
-          if (process.env.NODE_ENV !== 'production' || (isObject(sails.config.dev) && isObject(sails.config.dev.requestLogger) && sails.config.dev.requestLogger.onBegin)) {
+          if (!isObject(sails.config.dev) || !isObject(sails.config.dev.requestLogger)) {
+            sails.config.dev.requestLogger = {
+              onBegin: false,
+              onBeginDev: true,
+              onEnd: true,
+              onEndDev: true
+            }
+          }
+
+          if ((process.env.NODE_ENV !== 'production' && sails.config.dev.requestLogger.onBegin !== 'never') ||
+            sails.config.dev.requestLogger.onBegin !== 'never') {
             // Custom logger
               if (_.isFunction(sails.config.dev.requestLogger.onBegin)) {
                 sails.config.dev.requestLogger.onBegin({
@@ -92,7 +104,8 @@ module.exports = function (sails) {
           }
 
           // Skip in production, unless logger onEnd is forcibly enabled
-          if (process.env.NODE_ENV !== 'production' || (isObject(sails.config.dev) && isObject(sails.config.dev.requestLogger) && sails.config.dev.requestLogger.onEnd)) {
+          if ((process.env.NODE_ENV !== 'production' && sails.config.dev.requestLogger.onBegin !== 'never') ||
+            sails.config.dev.requestLogger.onEnd !== 'never') {
             // When the request is finished...
             res.once('finish', function () {
 
@@ -111,7 +124,18 @@ module.exports = function (sails) {
               }
               // Default logger
               else {
-                sails.log.verbose(' -> '+metadata.method.toUpperCase()+' '+metadata.path+'   ( -> '+metadata.responseTime+'ms)');
+                if (typeof res._headers['content-length'] === 'undefined') {
+                  res._headers['content-length'] = 0;
+                }
+
+                var color = 32; // green
+                var status = res.statusCode;
+
+                if (status >= 500) color = 31; // red
+                else if (status >= 400) color = 33; // yellow
+                else if (status >= 300) color = 36; // cyan
+
+                sails.log.verbose(' -> '+metadata.method.toUpperCase()+' '+metadata.path+ ' \x1b[' +color+ 'm' +res.statusCode+ '\x1b[0m   ( -> '+metadata.responseTime+'ms, '+prettyBytes(parseInt(res._headers['content-length'], 10))+')');
               }
             });
           }
@@ -163,8 +187,8 @@ module.exports = function (sails) {
         },
 
         // Run garbage collector (but only if node was started up with the `--expose-gc` flag)
-        'put /dev/gc': function(req, res) {
-          if (!process.gc) {
+        'get /dev/gc': function(req, res) {
+          if (!global.gc) {
             return res.send('gc() not exposed.  Try lifting your app via \'node --expose-gc app.js\'.');
           }
           var before = process.memoryUsage();
