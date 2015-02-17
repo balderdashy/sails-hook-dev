@@ -74,7 +74,7 @@ module.exports = function (sails) {
         //}
         '/*': function (req, res, next) {
           // Skip in production, unless logger onBegin is forcibly enabled
-          if (process.env.NODE_ENV !== 'production' || (_.isObject(sails.config.dev) && _.isObject(sails.config.dev.requestLogger) && sails.config.dev.requestLogger.onBegin)) {
+          if (process.env.NODE_ENV !== 'production' || (isObject(sails.config.dev) && isObject(sails.config.dev.requestLogger) && sails.config.dev.requestLogger.onBegin)) {
             // Custom logger
               if (_.isFunction(sails.config.dev.requestLogger.onBegin)) {
                 sails.config.dev.requestLogger.onBegin({
@@ -92,7 +92,7 @@ module.exports = function (sails) {
           }
 
           // Skip in production, unless logger onEnd is forcibly enabled
-          if (process.env.NODE_ENV !== 'production' || (_.isObject(sails.config.dev) && _.isObject(sails.config.dev.requestLogger) && sails.config.dev.requestLogger.onEnd)) {
+          if (process.env.NODE_ENV !== 'production' || (isObject(sails.config.dev) && isObject(sails.config.dev.requestLogger) && sails.config.dev.requestLogger.onEnd)) {
             // When the request is finished...
             res.once('finish', function () {
 
