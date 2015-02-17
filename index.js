@@ -187,7 +187,7 @@ module.exports = function (sails) {
         },
 
         // Run garbage collector (but only if node was started up with the `--expose-gc` flag)
-        'get /dev/gc': function(req, res) {
+        'put /dev/gc': function(req, res) {
           if (!global.gc) {
             return res.send('gc() not exposed.  Try lifting your app via \'node --expose-gc app.js\'.');
           }
