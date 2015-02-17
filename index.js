@@ -4,9 +4,24 @@
 
 var path = require('path');
 var fsx = require('fs-extra');
-var _ = require('lodash');
+var isObject = require('lodash/Lang/isObject');
+var reduce = require('lodash/Collection/reduce');
 
+function bytesToSize(bytes) {
+  if (bytes === 0) return '0 Byte';
+  var k = 1000;
+  var sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+  var i = Math.floor(Math.log(Math.abs(bytes)) / Math.log(k));
+  return (bytes / Math.pow(k, i)).toPrecision(3) + ' ' + sizes[i];
+};
 
+function prettifyObject(memoryUsage) {
+  memoryUsage.residentSetSize = memoryUsage.rss + ' Bytes (' + bytesToSize(memoryUsage.rss) + ')';
+  delete memoryUsage.rss;
+  memoryUsage.heapTotal = memoryUsage.heapTotal + ' Bytes (' + bytesToSize(memoryUsage.heapTotal) + ')';
+  memoryUsage.heapUsed = memoryUsage.heapUsed + ' Bytes (' + bytesToSize(memoryUsage.heapUsed) + ')';
+  return memoryUsage;
+};
 
 
 /**
@@ -27,7 +42,7 @@ module.exports = function (sails) {
     // Run when sails loads-- be sure and call `next()`.
     // (before `config/boostrap.js`)
     initialize: function (done) {
-      if (process.env.NODE_ENV==='production' && (!_.isObject(sails.config.dev) || !sails.config.dev.enabled)) {
+      if (process.env.NODE_ENV==='production' && (!isObject(sails.config.dev) || !sails.config.dev.enabled)) {
         return done();
       }
       return done();
@@ -44,7 +59,7 @@ module.exports = function (sails) {
       before: {
         // Show the available dev hook things
         'get /dev': function (req, res){
-          if (process.env.NODE_ENV === 'production' && (!_.isObject(sails.config.dev) || !sails.config.dev.enabled)) {
+          if (process.env.NODE_ENV === 'production' && (!isObject(sails.config.dev) || !sails.config.dev.enabled)) {
             return res.notFound();
           }
           return res.send(''+
@@ -58,13 +73,15 @@ module.exports = function (sails) {
             '<a href="/dev/session">See current user session</a>'+'<br/>'+
             '<a href="/dev/memory">See current memory usage</a>'+'<br/>'+
             '<a href="/dev/dependencies">See actual versions of node_module dependencies</a>'+'<br/>'+
+            '<a href="/dev/config">See whole Sails configuration</a>'+'<br/>'+
+            '<a href="/dev/env">See loaded Evnironment variables</a>'+'<br/>'+
           '');
         },
 
         // block access to the other shadow routes in below
         // (i.e. /dev/*)
         '/dev/*': function (req, res, next) {
-          if (process.env.NODE_ENV==='production' && (!_.isObject(sails.config.dev) || !sails.config.dev.enabled)) {
+          if (process.env.NODE_ENV==='production' && (!isObject(sails.config.dev) || !sails.config.dev.enabled)) {
             return res.notFound();
           }
           return next();
@@ -84,7 +101,7 @@ module.exports = function (sails) {
         // Run garbage collector (but only if node was started up with the `--expose-gc` flag)
         'put /dev/gc': function(req, res) {
           if (!process.gc) {
-            return res.send('gc() not exposed.  Try lifting your app with the --expose-gc flag enabled next time.');
+            return res.send('gc() not exposed.  Try lifting your app via \'node --expose-gc app.js\'.');
           }
           var before = process.memoryUsage();
           global.gc();
@@ -94,7 +111,7 @@ module.exports = function (sails) {
             heapTotal: before.heapTotal - after.heapTotal,
             heapUsed: before.heapUsed - after.heapUsed
           };
-          return res.json({Before: before, After: after, Diff: diff});
+          return res.json({ Before: prettifyObject(before), After: prettifyObject(after), Diff: prettifyObject(diff) });
         },
 
         // Get enviroment variables
@@ -109,13 +126,13 @@ module.exports = function (sails) {
 
         // Get current memory usage
         'get /dev/memory': function(req, res) {
-          return res.json(process.memoryUsage());
+          return res.json(prettifyObject(process.memoryUsage()));
         },
 
         // Get actual version of dependencies in the node_modules folder
         'get /dev/dependencies': function (req, res) {
           var dependencies = fsx.readJsonSync(path.resolve(sails.config.appPath, 'package.json')).dependencies;
-          return res.json(_.reduce(dependencies, function (memo, semverRange, depName){
+          return res.json(reduce(dependencies, function (memo, semverRange, depName){
             var actualDependencyVersion = fsx.readJsonSync(path.resolve(sails.config.appPath, path.join('node_modules',depName,'package.json'))).version;
             memo[depName] = actualDependencyVersion;
             return memo;
