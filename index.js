@@ -4,7 +4,7 @@
 
 var path = require('path');
 var fsx = require('fs-extra');
-var isObject = require('lodash/lang/isObject');
+var isObject = require('lodash').isObject;
 var reduce = require('lodash/collection/reduce');
 var prettyBytes = require('pretty-bytes')
 
