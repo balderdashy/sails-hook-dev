@@ -3,9 +3,8 @@
  */
 
 var path = require('path');
+var _ = require('lodash');
 var fsx = require('fs-extra');
-var isObject = require('lodash').isObject;
-var reduce = require('lodash').reduce;
 var prettyBytes = require('pretty-bytes');
 var formatMemoryUsageDictionary = require('./private/format-memory-usage-dictionary');
 
@@ -71,7 +70,7 @@ module.exports = function (sails) {
         //}
         '/*': function (req, res, next) {
           // Skip in production, unless logger onBegin is forcibly enabled
-          if (!isObject(sails.config.dev) || !isObject(sails.config.dev.requestLogger)) {
+          if (!_.isObject(sails.config.dev) || !_.isObject(sails.config.dev.requestLogger)) {
             sails.config.dev.requestLogger = {
               onBegin: false,
               onEnd: false
@@ -142,7 +141,7 @@ module.exports = function (sails) {
 
         // Show the available dev hook things
         'get /dev': function (req, res){
-          if (process.env.NODE_ENV === 'production' && (!isObject(sails.config.dev) || !sails.config.dev.enabled)) {
+          if (process.env.NODE_ENV === 'production' && (!_.isObject(sails.config.dev) || !sails.config.dev.enabled)) {
             return res.notFound();
           }
           return res.send(''+
@@ -164,7 +163,7 @@ module.exports = function (sails) {
         // block access to the other shadow routes in below
         // (i.e. /dev/*)
         '/dev/*': function (req, res, next) {
-          if (process.env.NODE_ENV==='production' && (!isObject(sails.config.dev) || !sails.config.dev.enabled)) {
+          if (process.env.NODE_ENV==='production' && (!_.isObject(sails.config.dev) || !sails.config.dev.enabled)) {
             return res.notFound();
           }
           return next();
@@ -215,7 +214,7 @@ module.exports = function (sails) {
         // Get actual version of dependencies in the node_modules folder
         'get /dev/dependencies': function (req, res) {
           var dependencies = fsx.readJsonSync(path.resolve(sails.config.appPath, 'package.json')).dependencies;
-          return res.json(reduce(dependencies, function (memo, semverRange, depName){
+          return res.json(_.reduce(dependencies, function (memo, semverRange, depName){
             var actualDependencyVersion = fsx.readJsonSync(path.resolve(sails.config.appPath, path.join('node_modules',depName,'package.json'))).version;
             memo[depName] = actualDependencyVersion;
             return memo;
