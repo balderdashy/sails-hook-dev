@@ -5,6 +5,7 @@
 var path = require('path');
 var _ = require('lodash');
 var fsx = require('fs-extra');
+var rttc = require('rttc');
 var prettyBytes = require('pretty-bytes');
 var formatMemoryUsageDictionary = require('./private/format-memory-usage-dictionary');
 
@@ -171,13 +172,27 @@ module.exports = function (sails) {
         /////////////////////////////////////////////////////////////////////
 
         // In development, a quick convenience endpoint to view all routes
+        // > Before responding, this dehydrates (to preserve any functions
+        // > and decycle any circular refs) and then truncates long strings.
         'get /dev/routes': function (req, res) {
-          return res.json(sails.config.routes);
+          var dehydrated = rttc.dehydrate(sails.config.routes);
+          var dehydratedWithTruncatedStrs = rttc.rebuild(dehydrated, function (primitive){
+            if (_.isString(primitive)) { return _.trunc(primitive, 200); }
+            else { return primitive; }
+          });
+          return res.json(dehydratedWithTruncatedStrs);
         },
 
-        // In development, a quick convenience endpoint to view your session
+        // In development, a quick convenience endpoint to view your session.
+        // > Before responding, this dehydrates (to preserve any functions
+        // > and decycle any circular refs) and then truncates long strings.
         'get /dev/session': function (req, res) {
-          return res.json(req.session);
+          var dehydrated = rttc.dehydrate(req.session);
+          var dehydratedWithTruncatedStrs = rttc.rebuild(dehydrated, function (primitive){
+            if (_.isString(primitive)) { return _.trunc(primitive, 200); }
+            else { return primitive; }
+          });
+          return res.json(dehydratedWithTruncatedStrs);
         },
 
         // Run garbage collector (but only if node was started up with the `--expose-gc` flag)
@@ -201,9 +216,21 @@ module.exports = function (sails) {
           return res.json(process.env);
         },
 
-        // Get sails.config
+        // Get `sails.config`
+        // (but dehydrate it, so you can see all the functions and other goodies...
+        //  and then truncate any really long strings, because holy crap that's hard
+        //  to look at)
         'get /dev/config': function(req, res) {
-          return res.json(req._sails.config);
+          var dehydratedConfig = rttc.dehydrate(req._sails.config);
+          var dehydratedConfigWithTruncatedStrs = rttc.rebuild(dehydratedConfig, function (val){
+            if (_.isString(val)) {
+              return _.trunc(val, 200);
+            }
+            else {
+              return val;
+            }
+          });
+          return res.json(dehydratedConfigWithTruncatedStrs);
         },
 
         // Get current memory usage
