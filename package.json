@@ -29,6 +29,7 @@
     "url": "git://github.com/balderdashy/sails-hook-dev.git"
   },
   "sails": {
-    "isHook": true
+    "isHook": true,
+    "hookName": "dev"
   }
 }

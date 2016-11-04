@@ -28,6 +28,9 @@ module.exports = function (sails) {
     // Run when sails loads-- be sure and call `next()`.
     // (before `config/boostrap.js`)
     initialize: function (done) {
+
+      sails.log.debug('initializing sails-hook-dev...');
+
       return done();
     },
 
