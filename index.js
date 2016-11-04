@@ -6,16 +6,8 @@ var path = require('path');
 var fsx = require('fs-extra');
 var isObject = require('lodash').isObject;
 var reduce = require('lodash').reduce;
-var prettyBytes = require('pretty-bytes')
-
-
-function prettifyObject(memoryUsage) {
-  memoryUsage.residentSetSize = memoryUsage.rss + ' B (' + prettyBytes(memoryUsage.rss) + ')';
-  delete memoryUsage.rss;
-  memoryUsage.heapTotal = memoryUsage.heapTotal + ' B (' + prettyBytes(memoryUsage.heapTotal) + ')';
-  memoryUsage.heapUsed = memoryUsage.heapUsed + ' B (' + prettyBytes(memoryUsage.heapUsed) + ')';
-  return memoryUsage;
-};
+var prettyBytes = require('pretty-bytes');
+var formatMemoryUsageDictionary = require('./lib/format-memory-usage-dictionary');
 
 
 /**
@@ -82,7 +74,7 @@ module.exports = function (sails) {
               onEnd: false
             }
           }
-          
+
           //only activate in dev environemnt
           //if never is
           if ((process.env.NODE_ENV !== 'production' && sails.config.dev.requestLogger.onBegin !== 'never') ||
@@ -112,7 +104,7 @@ module.exports = function (sails) {
               var metadata = {
                 method: req.method,
                 path: req.path,
-                responseTime: _getMilisecondsElapsedSince( req._startTime )
+                responseTime: Date.now() - req._startTime
               };
 
               // Custom logger
@@ -199,7 +191,7 @@ module.exports = function (sails) {
             heapTotal: before.heapTotal - after.heapTotal,
             heapUsed: before.heapUsed - after.heapUsed
           };
-          return res.json({ Before: prettifyObject(before), After: prettifyObject(after), Diff: prettifyObject(diff) });
+          return res.json({ Before: formatMemoryUsageDictionary(before), After: formatMemoryUsageDictionary(after), Diff: formatMemoryUsageDictionary(diff) });
         },
 
         // Get enviroment variables
@@ -214,7 +206,7 @@ module.exports = function (sails) {
 
         // Get current memory usage
         'get /dev/memory': function(req, res) {
-          return res.json(prettifyObject(process.memoryUsage()));
+          return res.json(formatMemoryUsageDictionary(process.memoryUsage()));
         },
 
         // Get actual version of dependencies in the node_modules folder
@@ -233,10 +225,3 @@ module.exports = function (sails) {
   };
 
 };
-
-
-
-
-function _getMilisecondsElapsedSince (startTime) {
-  return new Date() - startTime;
-}
