@@ -7,7 +7,7 @@ var fsx = require('fs-extra');
 var isObject = require('lodash').isObject;
 var reduce = require('lodash').reduce;
 var prettyBytes = require('pretty-bytes');
-var formatMemoryUsageDictionary = require('./lib/format-memory-usage-dictionary');
+var formatMemoryUsageDictionary = require('./private/format-memory-usage-dictionary');
 
 
 /**
@@ -72,7 +72,7 @@ module.exports = function (sails) {
             sails.config.dev.requestLogger = {
               onBegin: false,
               onEnd: false
-            }
+            };
           }
 
           //only activate in dev environemnt
