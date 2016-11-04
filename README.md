@@ -13,7 +13,7 @@ A Sails hook that provides diagnostic / debugging information during development
 In your Sails project:
 
 ```
-npm install sails-hook-dev --save
+npm install sails-hook-dev --save-dev
 ```
 
 ## Usage
