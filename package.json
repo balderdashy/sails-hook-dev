@@ -16,13 +16,13 @@
   "author": "Mike McNeil",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/balderdashy/sails-hook-dev/issues"
+    "url": "http://sailsjs.com/bugs"
   },
-  "homepage": "https://github.com/balderdashy/sails-hook-dev",
+  "homepage": "http://sailsjs.com",
   "dependencies": {
-    "fs-extra": "^0.16.3",
-    "lodash": "^3.2.0",
-    "pretty-bytes": "^1.0.3"
+    "fs-extra": "0.30.0",
+    "lodash": "3.10.1",
+    "pretty-bytes": "1.0.4"
   },
   "repository": {
     "type": "git",
