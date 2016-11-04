@@ -41,18 +41,18 @@ module.exports = function (sails) {
 
     defaults:{
       dev: {
-        // If set, `enabled` will force the secret page for this hook to be live, even in production.
+        // If set to true, `enabled` will force the secret page for this hook to be live, even in production.
         // Warning: Do not set this to true if this is **ACTUAL** production!  It can reveals system information
         // that may make your app vulnerable to attacks or give away sensitive user information.
         enabled: false,
 
         requestLogger: {
-          // If set, `logRequests` will log the beginning of every reqeust  (even in production!)
+          // If set to true, `logRequests` will log the beginning of every reqeust  (even in production!)
           // If set to 'never', it will not log regardless of the environment
           onBegin: false,
-          // If set, `logRequests` will log the end of every reqeust (even in production!)
+          // If set to true, `logRequests` will log the end of every reqeust (even in production!)
           // If set to 'never', it will not log regardless of the environment
-          onEnd: true
+          onEnd: false
         }
       }
     },
@@ -79,14 +79,14 @@ module.exports = function (sails) {
           if (!isObject(sails.config.dev) || !isObject(sails.config.dev.requestLogger)) {
             sails.config.dev.requestLogger = {
               onBegin: false,
-              onBeginDev: true,
-              onEnd: true,
-              onEndDev: true
+              onEnd: false
             }
           }
-
+          
+          //only activate in dev environemnt
+          //if never is
           if ((process.env.NODE_ENV !== 'production' && sails.config.dev.requestLogger.onBegin !== 'never') ||
-            sails.config.dev.requestLogger.onBegin !== 'never') {
+            sails.config.dev.requestLogger.onBegin === true) {
             // Custom logger
               if (_.isFunction(sails.config.dev.requestLogger.onBegin)) {
                 sails.config.dev.requestLogger.onBegin({
@@ -105,7 +105,7 @@ module.exports = function (sails) {
 
           // Skip in production, unless logger onEnd is forcibly enabled
           if ((process.env.NODE_ENV !== 'production' && sails.config.dev.requestLogger.onBegin !== 'never') ||
-            sails.config.dev.requestLogger.onEnd !== 'never') {
+            sails.config.dev.requestLogger.onEnd === true) {
             // When the request is finished...
             res.once('finish', function () {
 
