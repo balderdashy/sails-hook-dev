@@ -4,7 +4,7 @@
   "description": "Hook for Sails.js full of development utilities.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"This hook does not have any tests.  Feel free to add some via pull request\""
   },
   "keywords": [
     "sails.js",
