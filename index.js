@@ -7,6 +7,7 @@ var _ = require('lodash');
 var fsx = require('fs-extra');
 var rttc = require('rttc');
 var formatMemoryUsageDictionary = require('./private/format-memory-usage-dictionary');
+var allocForNoReason = require('./private/alloc-for-no-reason');
 
 
 /**
@@ -85,6 +86,7 @@ module.exports = function (sails) {
             '<br/>'+
             '<blockquote>This page is served by sails-hook-dev, which is for <strong>development use only</strong>.  If you are seeing this page in production, please discretely contact the maintainer of this application as soon as possible.</blockquote>'+
             '<br/><hr/><br/>'+
+
             '<h3>Runtime status for this Sails/Node.js app:</h3>'+'<br/>'+
             '<a href="/dev/session">See the session data (`req.session`) of the currently-logged in user</a>'+'<br/>'+
             '<a href="/dev/routes">See all explicit routes (`sails.config.routes`)</a>'+'<br/>'+
@@ -93,7 +95,15 @@ module.exports = function (sails) {
             '<a href="/dev/env">See all process environment variables (`process.env`)</a>'+'<br/>'+
             '<a href="/dev/memory">See the process\'s current memory usage (`process.memoryUsage()`)</a>'+'<br/>'+
             '<br/><hr/><br/>'+
+
             '<h3>Operational / debugging actions:</h3>'+'<br/>'+
+            '<a href="/dev/throw-uncaught">Deliberately crash this Sails/Node.js process by throwing an uncaught exception</a> <em>(this simulates an uncaught error thrown in an asynchronous callback)</em>'+'<br/>'+
+            '<a href="/dev/dont-respond">Send a request to an endpoint which deliberately never sends a response</a> <em>(will timeout once `res.timeout` has elapsed, or 120 seconds by default)</em>'+'<br/>'+
+            '<a href="/dev/peg">Deliberately lock up the server process by overwhelming its CPU (e.g. `while(true)`)</a>'+'<br/>'+
+            '<a href="/dev/overflow-stack">Deliberately overflow the call stack by simulating a runaway recursive function</a>'+'<br/>'+
+            '<a href="/dev/overflow-memory">Deliberately overflow the server process\'s available memory</a>'+'<br/>'+
+            '<a href="/dev/consume-memory">Deliberately consume some memory (but do not leak)</a>  <em>This can be reclaimed when the gc runs.</em>'+'<br/>'+
+            '<a href="/dev/leak-memory">Deliberately LEAK some memory</a>  <em>This CANNOT be reclaimed when the gc runs.</em>'+'<br/>'+
             '<a href="/dev/gc">Run the garbage collector for this process (`process.gc()`)</a>'+'<br/>'+
           '');
         },
@@ -251,6 +261,170 @@ module.exports = function (sails) {
 
           return res.json({ Before: formatMemoryUsageDictionary(before), After: formatMemoryUsageDictionary(after), Diff: formatMemoryUsageDictionary(diff) });
         },
+
+
+        // Dump a bunch of junk into the heap via a global variable
+        // > Useful for simulating a memory leak.
+        '/dev/leak-memory': function(req, res) {
+          if (process.env.NODE_ENV === 'production' && !sails.config.dev.enableInProduction) {
+            return res.notFound();
+          }//-•
+
+
+          // Ensure our global variable exists.
+          // (we use it below)
+          //
+          // > The very first time this is called per process, the global var won't exist yet,
+          // > so that's why we check-- because in that case, we have to build it right here.
+          global.sailsHookDevSimulatedMemoryLeak = global.sailsHookDevSimulatedMemoryLeak || [];
+
+
+          // Build a big dictionary that wastes tons of memory, and get the diff
+          // of HOW much additional memory it has consumed.
+          //
+          // (note that it doesn't matter whether we've pushed our data onto the global variable
+          //  yet, at least not as far as the objective memory usage.  That will only matter if we
+          //  continually leak memory -- and then when the garbage collector starts running more
+          //  and more often - reclaiming less and less memory.)
+          var report = allocForNoReason(999, 9999);
+
+
+          // Now actually do the leak:
+          // Push the new, wasteful data on to our global array to simulate a memory leak.
+          global.sailsHookDevSimulatedMemoryLeak.push(report.data);
+
+
+          // Send down memory usage diff as JSON.
+          return res.json({ 'Memory consumed AND leaked:': formatMemoryUsageDictionary(report.memoryDiff) });
+
+        },
+
+
+        // Build a bunch of junk in memory, but do it in a local variable, so that
+        // it DOES NOT cause a memory leak.
+        //
+        // > Useful for demonstrating high memory usage WITHOUT a memory leak, and for
+        // > studying the conditions under which the garbage collector runs under various
+        // > conditions.
+        '/dev/consume-memory': function(req, res) {
+          if (process.env.NODE_ENV === 'production' && !sails.config.dev.enableInProduction) {
+            return res.notFound();
+          }//-•
+
+          // Build a big dictionary that wastes tons of memory, and get the diff
+          // of HOW much additional memory it has consumed.
+          var report = allocForNoReason(999, 9999);
+
+          // Now, don't do anything with our wasteful data.
+          // We'll just go ahead and respond with the diff.
+          // i.e. this memory CAN and WILL be reclaimed by V8,
+          // but not until V8 actually needs/wants it, at which
+          // point it will just run the garbage collector.  (Or
+          // you can do it manually.)
+
+          // Send down memory usage diff as JSON.
+          return res.json({ 'Memory consumed (but not leaked!):': formatMemoryUsageDictionary(report.memoryDiff) });
+
+        },
+
+
+        // Crash the Node process with a fatal error, causing the process to terminate w/ a non-zero exit code.
+        // > This is useful for simulating an uncaught error thrown from inside of an asynchronous callback.
+        '/dev/throw-uncaught': function(req, res) {
+          if (process.env.NODE_ENV === 'production' && !sails.config.dev.enableInProduction) {
+            return res.notFound();
+          }//-•
+
+          setTimeout(function (){
+
+            throw new Error('This is a deliberately-uncaught error designed to crash the process (i.e. it was thrown from inside of an asynchronous callback).  This occurred at: '+new Date());
+
+          }, 0);
+
+          // ----------------------------------------------------------------------------------------
+          // Note that it doesnt matter whether we send a response (e.g. `res.ok()`) or not--
+          // If the uncaught exception occurs after we already sent the response, it makes
+          // no difference (the server would crash just the same).
+          // ----------------------------------------------------------------------------------------
+
+          // As a point of sanity, and in case of any weird/deprecated Node error domains living in userland,
+          // we make 100% sure by doing an additional assertion.
+          setTimeout(function (){
+
+            throw new Error('This should never run, because the process should have crashed by now.');
+
+          }, 1000);
+
+        },
+
+
+        // Overflow memory (RAM)
+        '/dev/overflow-memory': function(req, res) {
+          if (process.env.NODE_ENV === 'production' && !sails.config.dev.enableInProduction) {
+            return res.notFound();
+          }//-•
+
+          // Build a huge variable with so much data that it won't fit in memory.
+          var tantalus = allocForNoReason(999999, 999999999);
+
+          throw new Error('Oops-- you should not be seeing this message, because the process\'s available memory should have been overwhelmed, causing it to crash.');
+
+        },
+
+        // Lock up the process CPU, pegging at 100% and making it so nothing else can happen.
+        '/dev/peg': function(req, res) {
+          if (process.env.NODE_ENV === 'production' && !sails.config.dev.enableInProduction) {
+            return res.notFound();
+          }//-•
+
+
+          sails.log.warn('About to peg the CPU with `while(true)`...');
+          sails.log.warn();
+          sails.log.warn('You won\'t be able to kill the process very easily (i.e. CTRL+C won\'t work).');
+          sails.log.warn('So here are some tips to help you out:');
+          sails.log.warn();
+          sails.log.warn('1. In a new terminal window/tab, run:');
+          sails.log.warn('  `ps aux | grep node`');
+          sails.log.warn();
+          sails.log.warn('Then, for each matching process id (e.g. `23248`), run `kill` to forcefully terminate it, e.g.:');
+          sails.log.warn('  `kill -s 9 23248`');
+          sails.log.warn();
+          sails.log.warn('Be sure to run `ps aux | grep node` again one more time afterwards, just to double-check.');
+
+          while (true) { }
+
+          throw new Error('Oops-- you should not be seeing this message, because the process should have been locked up by a `while(true){}`.  It should not crash, but it should literally HANG FOREVER.  And it should not be able to handle any more requests while locked up like this.');
+
+        },
+
+
+        // Deliberately never respond to the request, which will eventually result in the underlying Node http module giving up and rejecting the request.
+        '/dev/dont-respond': function(req, res) {
+          if (process.env.NODE_ENV === 'production' && !sails.config.dev.enableInProduction) {
+            return res.notFound();
+          }//-•
+
+          // Deliberately never respond...
+          // (will time out after 120 seconds by default, configurable using res.timeout)
+
+        },
+
+
+        // Deliberately overflow the call stack using runaway recursion.
+        '/dev/overflow-stack': function(req, res) {
+          if (process.env.NODE_ENV === 'production' && !sails.config.dev.enableInProduction) {
+            return res.notFound();
+          }//-•
+
+
+          (function _runawayRecursion(){
+            _runawayRecursion();
+          })();
+
+          throw new Error('Oops-- you should not be seeing this message, because an error should have been thrown above due to the stack being too deep (i.e. should have sent a 500 response)');
+
+        },
+
 
       }//</.routes.before>
     }//</.routes>
