@@ -5,7 +5,9 @@ A Sails hook that provides diagnostic / debugging information during development
 
 > ###### Note
 >
-> The diagnostic routes exposed by this hook will work when your app is in development mode (i.e. `NODE_ENV` != "production")
+> The diagnostic routes exposed by this hook will work when your app is in development mode (i.e. `NODE_ENV` !== "production")
+>
+> For security reasons, they are disabled in production.
 
 
 ## Install
