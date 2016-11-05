@@ -24,7 +24,7 @@ npm install sails-hook-dev --save-dev
 
 To see all available development routes, visit [http://localhost:1337/dev](http://localhost:1337/dev):
 
-![screenshot of what the dev page looks like](http://i.imgur.com/3xJDAXr.png)
+![screenshot of what the dev page looks like](https://cloud.githubusercontent.com/assets/618009/20028928/8ddac788-a30c-11e6-9ebf-44a12f71e0c4.png)
 
 ##### See all available routes
 [http://localhost:1337/dev/routes](http://localhost:1337/dev/routes)
@@ -37,6 +37,35 @@ To see all available development routes, visit [http://localhost:1337/dev](http:
 
 ##### See current memory usage
 [http://localhost:1337/dev/memory](http://localhost:1337/dev/memory)
+
+
+#### Debugging
+
+##### Deliberately crash the process
+[http://localhost:1337/dev/throw-uncaught](http://localhost:1337/dev/throw-uncaught)
+
+##### Simulate endpoint that never sends a response
+[http://localhost:1337/dev/dont-respond](http://localhost:1337/dev/dont-respond)
+
+##### Simulate locking up the process by overwhelming its CPU
+[http://localhost:1337/dev/peg](http://localhost:1337/dev/peg)
+
+##### Simulate runaway recursion that overflows the call stack
+[http://localhost:1337/dev/overflow-stack](http://localhost:1337/dev/overflow-stack)
+
+##### Simulate exceeding the process's available memory
+[http://localhost:1337/dev/overflow-memory](http://localhost:1337/dev/overflow-memory)
+
+##### Simulate an endpoint that consumes memory, but does not leak
+[http://localhost:1337/dev/consume-memory](http://localhost:1337/dev/consume-memory)
+
+##### Simulate an endpoint with an **actual memory leak**
+[http://localhost:1337/dev/leak-memory](http://localhost:1337/dev/leak-memory)
+
+##### Run the garbage collector
+[http://localhost:1337/dev/gc](http://localhost:1337/dev/gc)
+
+> Note that you must lift your app with `node --expose-gc app.js` in order for the garbage collector to be accessible from userland.
 
 
 ## Help
