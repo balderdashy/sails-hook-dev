@@ -58,6 +58,21 @@ module.exports = function (sails) {
     routes: {
       before: {
 
+
+        //  ██╗      █████╗ ███╗   ██╗██████╗ ██╗███╗   ██╗ ██████╗     ██████╗  █████╗  ██████╗ ███████╗
+        //  ██║     ██╔══██╗████╗  ██║██╔══██╗██║████╗  ██║██╔════╝     ██╔══██╗██╔══██╗██╔════╝ ██╔════╝
+        //  ██║     ███████║██╔██╗ ██║██║  ██║██║██╔██╗ ██║██║  ███╗    ██████╔╝███████║██║  ███╗█████╗
+        //  ██║     ██╔══██║██║╚██╗██║██║  ██║██║██║╚██╗██║██║   ██║    ██╔═══╝ ██╔══██║██║   ██║██╔══╝
+        //  ███████╗██║  ██║██║ ╚████║██████╔╝██║██║ ╚████║╚██████╔╝    ██║     ██║  ██║╚██████╔╝███████╗
+        //  ╚══════╝╚═╝  ╚═╝╚═╝  ╚═══╝╚═════╝ ╚═╝╚═╝  ╚═══╝ ╚═════╝     ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚══════╝
+        //
+        //  ███████╗ ██████╗ ██████╗         ██╗██████╗ ███████╗██╗   ██╗
+        //  ██╔════╝██╔═══██╗██╔══██╗       ██╔╝██╔══██╗██╔════╝██║   ██║
+        //  █████╗  ██║   ██║██████╔╝      ██╔╝ ██║  ██║█████╗  ██║   ██║
+        //  ██╔══╝  ██║   ██║██╔══██╗     ██╔╝  ██║  ██║██╔══╝  ╚██╗ ██╔╝
+        //  ██║     ╚██████╔╝██║  ██║    ██╔╝   ██████╔╝███████╗ ╚████╔╝
+        //  ╚═╝      ╚═════╝ ╚═╝  ╚═╝    ╚═╝    ╚═════╝ ╚══════╝  ╚═══╝
+        //
         // Show the available dev hook things
         'get /dev': function (req, res){
           if (process.env.NODE_ENV === 'production' && !sails.config.dev.enableInProduction) {
@@ -83,6 +98,29 @@ module.exports = function (sails) {
           '');
         },
 
+
+
+        //  ██████╗ ██╗   ██╗███╗   ██╗████████╗██╗███╗   ███╗███████╗
+        //  ██╔══██╗██║   ██║████╗  ██║╚══██╔══╝██║████╗ ████║██╔════╝
+        //  ██████╔╝██║   ██║██╔██╗ ██║   ██║   ██║██╔████╔██║█████╗
+        //  ██╔══██╗██║   ██║██║╚██╗██║   ██║   ██║██║╚██╔╝██║██╔══╝
+        //  ██║  ██║╚██████╔╝██║ ╚████║   ██║   ██║██║ ╚═╝ ██║███████╗
+        //  ╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═══╝   ╚═╝   ╚═╝╚═╝     ╚═╝╚══════╝
+        //
+        //  ███████╗████████╗ █████╗ ████████╗██╗   ██╗███████╗       ██╗
+        //  ██╔════╝╚══██╔══╝██╔══██╗╚══██╔══╝██║   ██║██╔════╝       ██║
+        //  ███████╗   ██║   ███████║   ██║   ██║   ██║███████╗    ████████╗
+        //  ╚════██║   ██║   ██╔══██║   ██║   ██║   ██║╚════██║    ██╔═██╔═╝
+        //  ███████║   ██║   ██║  ██║   ██║   ╚██████╔╝███████║    ██████║
+        //  ╚══════╝   ╚═╝   ╚═╝  ╚═╝   ╚═╝    ╚═════╝ ╚══════╝    ╚═════╝
+        //
+        //  ██████╗ ██╗ █████╗  ██████╗ ███╗   ██╗ ██████╗ ███████╗████████╗██╗ ██████╗███████╗
+        //  ██╔══██╗██║██╔══██╗██╔════╝ ████╗  ██║██╔═══██╗██╔════╝╚══██╔══╝██║██╔════╝██╔════╝
+        //  ██║  ██║██║███████║██║  ███╗██╔██╗ ██║██║   ██║███████╗   ██║   ██║██║     ███████╗
+        //  ██║  ██║██║██╔══██║██║   ██║██║╚██╗██║██║   ██║╚════██║   ██║   ██║██║     ╚════██║
+        //  ██████╔╝██║██║  ██║╚██████╔╝██║ ╚████║╚██████╔╝███████║   ██║   ██║╚██████╗███████║
+        //  ╚═════╝ ╚═╝╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═══╝ ╚═════╝ ╚══════╝   ╚═╝   ╚═╝ ╚═════╝╚══════╝
+        //
 
         // In development, a quick convenience endpoint to view all routes
         // > Before responding, this dehydrates (to preserve any functions
@@ -114,28 +152,6 @@ module.exports = function (sails) {
             else { return primitive; }
           });
           return res.json(dehydratedWithTruncatedStrs);
-        },
-
-        // Run garbage collector (but only if node was started up with the `--expose-gc` flag)
-        '/dev/gc': function(req, res) {
-          if (process.env.NODE_ENV === 'production' && !sails.config.dev.enableInProduction) {
-            return res.notFound();
-          }//-•
-
-          if (!global.gc) {
-            return res.status(500).send('gc() not exposed.  Try lifting your app via \'node --expose-gc app.js\'.');
-          }
-
-          var before = process.memoryUsage();
-          global.gc();
-          var after = process.memoryUsage();
-          var diff = {
-            rss: before.rss - after.rss,
-            heapTotal: before.heapTotal - after.heapTotal,
-            heapUsed: before.heapUsed - after.heapUsed
-          };
-
-          return res.json({ Before: formatMemoryUsageDictionary(before), After: formatMemoryUsageDictionary(after), Diff: formatMemoryUsageDictionary(diff) });
         },
 
         // Get enviroment variables
@@ -190,7 +206,51 @@ module.exports = function (sails) {
             return memo;
           }, {}));
 
-        }
+        },
+
+        //   ██████╗ ██████╗ ███████╗██████╗  █████╗ ████████╗██╗ ██████╗ ███╗   ██╗ █████╗ ██╗
+        //  ██╔═══██╗██╔══██╗██╔════╝██╔══██╗██╔══██╗╚══██╔══╝██║██╔═══██╗████╗  ██║██╔══██╗██║
+        //  ██║   ██║██████╔╝█████╗  ██████╔╝███████║   ██║   ██║██║   ██║██╔██╗ ██║███████║██║
+        //  ██║   ██║██╔═══╝ ██╔══╝  ██╔══██╗██╔══██║   ██║   ██║██║   ██║██║╚██╗██║██╔══██║██║
+        //  ╚██████╔╝██║     ███████╗██║  ██║██║  ██║   ██║   ██║╚██████╔╝██║ ╚████║██║  ██║███████╗
+        //   ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝   ╚═╝   ╚═╝ ╚═════╝ ╚═╝  ╚═══╝╚═╝  ╚═╝╚══════╝
+        //
+        //      ██╗    ██████╗ ███████╗██████╗ ██╗   ██╗ ██████╗  ██████╗ ██╗███╗   ██╗ ██████╗
+        //     ██╔╝    ██╔══██╗██╔════╝██╔══██╗██║   ██║██╔════╝ ██╔════╝ ██║████╗  ██║██╔════╝
+        //    ██╔╝     ██║  ██║█████╗  ██████╔╝██║   ██║██║  ███╗██║  ███╗██║██╔██╗ ██║██║  ███╗
+        //   ██╔╝      ██║  ██║██╔══╝  ██╔══██╗██║   ██║██║   ██║██║   ██║██║██║╚██╗██║██║   ██║
+        //  ██╔╝       ██████╔╝███████╗██████╔╝╚██████╔╝╚██████╔╝╚██████╔╝██║██║ ╚████║╚██████╔╝
+        //  ╚═╝        ╚═════╝ ╚══════╝╚═════╝  ╚═════╝  ╚═════╝  ╚═════╝ ╚═╝╚═╝  ╚═══╝ ╚═════╝
+        //
+        //   █████╗  ██████╗████████╗██╗ ██████╗ ███╗   ██╗███████╗
+        //  ██╔══██╗██╔════╝╚══██╔══╝██║██╔═══██╗████╗  ██║██╔════╝
+        //  ███████║██║        ██║   ██║██║   ██║██╔██╗ ██║███████╗
+        //  ██╔══██║██║        ██║   ██║██║   ██║██║╚██╗██║╚════██║
+        //  ██║  ██║╚██████╗   ██║   ██║╚██████╔╝██║ ╚████║███████║
+        //  ╚═╝  ╚═╝ ╚═════╝   ╚═╝   ╚═╝ ╚═════╝ ╚═╝  ╚═══╝╚══════╝
+        //
+
+        // Run garbage collector (but only if node was started up with the `--expose-gc` flag)
+        '/dev/gc': function(req, res) {
+          if (process.env.NODE_ENV === 'production' && !sails.config.dev.enableInProduction) {
+            return res.notFound();
+          }//-•
+
+          if (!global.gc) {
+            return res.status(500).send('gc() not exposed.  Try lifting your app via \'node --expose-gc app.js\'.');
+          }
+
+          var before = process.memoryUsage();
+          global.gc();
+          var after = process.memoryUsage();
+          var diff = {
+            rss: before.rss - after.rss,
+            heapTotal: before.heapTotal - after.heapTotal,
+            heapUsed: before.heapUsed - after.heapUsed
+          };
+
+          return res.json({ Before: formatMemoryUsageDictionary(before), After: formatMemoryUsageDictionary(after), Diff: formatMemoryUsageDictionary(diff) });
+        },
 
       }//</.routes.before>
     }//</.routes>
