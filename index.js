@@ -72,12 +72,15 @@ module.exports = function (sails) {
             '<h1>Runtime reference info</h1>'+'<br/>'+
             '<em>development only</em>'+'<br/>'+
             '<br/>'+'<br/>'+
-            '<a href="/dev/routes">See all routes</a>'+'<br/>'+
-            '<a href="/dev/session">See current user session</a>'+'<br/>'+
-            '<a href="/dev/memory">See current memory usage</a>'+'<br/>'+
-            '<a href="/dev/dependencies">See actual versions of node_module dependencies</a>'+'<br/>'+
-            '<a href="/dev/config">See whole Sails configuration</a>'+'<br/>'+
-            '<a href="/dev/env">See loaded Evnironment variables</a>'+'<br/>'+
+            '<a href="/dev/session">See the session data (`req.session`) of the currently-logged in user</a>'+'<br/>'+
+            '<br/><hr/><br/>'+
+            '<a href="/dev/routes">See all explicit routes (`sails.config.routes`)</a>'+'<br/>'+
+            '<a href="/dev/dependencies">See actual, installed versions of dependencies from `node_modules/`</a>'+'<br/>'+
+            '<a href="/dev/config">See all configured settings (`sails.config`)</a>'+'<br/>'+
+            '<br/><hr/><br/>'+
+            '<a href="/dev/env">See all process environment variables (`process.env`)</a>'+'<br/>'+
+            '<a href="/dev/memory">See the process\'s current memory usage (`process.memoryUsage()`)</a>'+'<br/>'+
+            '<a href="/dev/gc">Run the garbage collector (`process.gc()`)</a>'+'<br/>'+
           '');
         },
 
@@ -121,8 +124,9 @@ module.exports = function (sails) {
           }//-•
 
           if (!global.gc) {
-            return res.send('gc() not exposed.  Try lifting your app via \'node --expose-gc app.js\'.');
+            return res.status(500).send('gc() not exposed.  Try lifting your app via \'node --expose-gc app.js\'.');
           }
+
           var before = process.memoryUsage();
           global.gc();
           var after = process.memoryUsage();
@@ -131,6 +135,7 @@ module.exports = function (sails) {
             heapTotal: before.heapTotal - after.heapTotal,
             heapUsed: before.heapUsed - after.heapUsed
           };
+
           return res.json({ Before: formatMemoryUsageDictionary(before), After: formatMemoryUsageDictionary(after), Diff: formatMemoryUsageDictionary(diff) });
         },
 
