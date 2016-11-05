@@ -2,12 +2,14 @@
 
 A Sails hook that provides diagnostic / debugging information during development.
 
+Check the memory usage or environent variables of the currently-running Sails/Node.js process. Or check how it's configured, or the installed versions of its dependencies. You can also fetch session data for the currently logged in user, or force Node's garbage collector to run.
+
 
 > ###### Note
 >
 > The diagnostic routes exposed by this hook will work when your app is in development mode (i.e. `NODE_ENV` !== "production")
 >
-> For security reasons, they are disabled in production.
+> For security reasons, this hook should _never_ be used in production.
 
 
 ## Install

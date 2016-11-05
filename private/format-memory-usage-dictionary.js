@@ -1,4 +1,11 @@
 /**
+ * Module dependencies
+ */
+
+var prettyBytes = require('pretty-bytes');
+
+
+/**
  * formatMemoryUsageDictionary()
  *
  * Prettify the provided memory usage dictionary.
