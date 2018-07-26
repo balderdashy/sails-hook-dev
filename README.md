@@ -70,9 +70,8 @@ To see all available development routes, visit [http://localhost:1337/dev](http:
 
 #### Setting this up on your staging server
 
-Want to use this hook in your staging environment?  Since the NODE_ENV environment variable will be set to production, the hook will be disabled by default.  But never fear: you have two recommended options:
+Want to use this hook in your staging environment?  Since the NODE_ENV environment variable will be set to production, the hook will be disabled by default.  But never fear: there is a simple, recommended solution.
 
-##### 1. config/env/staging.js
 At the bottom of your staging configuration (`config/env/staging.js`), set:
 
 ```js
@@ -81,11 +80,7 @@ At the bottom of your staging configuration (`config/env/staging.js`), set:
   }),
 ```
 
-##### 2. Environment variables
-Or, in your environment variables, set `sails_dev__enableInProduction=true`.  (The exact mechanism for doing this will vary depending on where your app is hosted.
-
-For example, here's what it looks like in Heroku:
-![Heroku example of staging config](https://i.imgur.com/NVc9SR8.png)
+> Note that you could hypothetically specify this in your environment variables, by setting `sails_dev__enableInProduction=true`.  But as of Sails 1.1.0 the behavior of `rc` when merging this particular config key gets a little bit wonky, so it's best to stick with the solution above.
 
 
 ## Help
