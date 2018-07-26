@@ -68,6 +68,26 @@ To see all available development routes, visit [http://localhost:1337/dev](http:
 > Note that you must lift your app with `node --expose-gc app.js` in order for the garbage collector to be accessible from userland.
 
 
+#### Setting this up on your staging server
+
+Want to use this hook in your staging environment?  Since the NODE_ENV environment variable will be set to production, the hook will be disabled by default.  But never fear: you have two recommended options:
+
+##### 1. config/env/staging.js
+At the bottom of your staging configuration (`config/env/staging.js`), set:
+
+```js
+  dev: {
+    enableInProduction: true
+  }
+```
+
+##### 2. Environment variables
+Or, in your environment variables, set `sails_dev__enableInProduction=true`.  (The exact mechanism for doing this will vary depending on where your app is hosted.
+
+For example, here's what it looks like in Heroku:
+<blockquote class="imgur-embed-pub" lang="en" data-id="a/iqrhXCo"><a href="//imgur.com/iqrhXCo"></a></blockquote><script async src="//s.imgur.com/min/embed.js" charset="utf-8"></script>
+
+
 ## Help
 
 If you have further questions or are having trouble, click [here](http://sailsjs.com/support).
