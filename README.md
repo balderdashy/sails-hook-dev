@@ -76,7 +76,7 @@ Want to use this hook in your staging environment?  Since the NODE_ENV environme
 At the bottom of your staging configuration (`config/env/staging.js`), set:
 
 ```js
-  dev: Object.assign({}, PRODUCTION_CONFIG.custom, {
+  dev: Object.assign({}, PRODUCTION_CONFIG.dev||{}, {
     enableInProduction: true
   }),
 ```
