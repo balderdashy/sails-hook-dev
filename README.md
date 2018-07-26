@@ -85,7 +85,7 @@ At the bottom of your staging configuration (`config/env/staging.js`), set:
 Or, in your environment variables, set `sails_dev__enableInProduction=true`.  (The exact mechanism for doing this will vary depending on where your app is hosted.
 
 For example, here's what it looks like in Heroku:
-<blockquote class="imgur-embed-pub" lang="en" data-id="a/iqrhXCo"><a href="//imgur.com/iqrhXCo"></a></blockquote><script async src="//s.imgur.com/min/embed.js" charset="utf-8"></script>
+![Heroku example of staging config](https://i.imgur.com/NVc9SR8.png)
 
 
 ## Help
@@ -106,6 +106,6 @@ Please observe the guidelines and conventions laid out in the [Sails project con
 
 ## License
 
-MIT &copy; 2015, 2016 Mike McNeil
+MIT &copy; 2015, 2016, 2018-present Mike McNeil
 
 _As for the [Sails framework](http://sailsjs.com), it's free and open-source under the [MIT License](http://sailsjs.com/license) too._
