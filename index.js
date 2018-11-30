@@ -443,7 +443,8 @@ module.exports = function (sails) {
           }
           sails.renderView();
 
-          res.ok('In ~15 seconds or so, a warning will appear in your logs with a stack trace designed to help you locate and fix the missing "await" in your code.');
+          sails.log.warn('In ~15 seconds or so, a warning will be logged below with a stack trace designed to help you locate and fix the missing "await" in your code.  (This is a simulation from sails-hook-dev.)');
+          res.send('In ~15 seconds or so, a warning will appear in your logs with a stack trace designed to help you locate and fix the missing "await" in your code.  (This is a simulation from sails-hook-dev.)');
 
         },
 
