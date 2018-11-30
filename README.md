@@ -9,7 +9,9 @@ Check the memory usage or environent variables of the currently-running Sails/No
 >
 > The diagnostic routes exposed by this hook will work when your app is in development mode (i.e. `NODE_ENV` !== "production")
 >
-> For security reasons, this hook should _never_ be used in production.
+> If you want to enable this hook in a _production-like_ environment where NODE_ENV _is_ set to production (such as your staging environment), then [use the `dev.enableInProduction` setting](#setting-this-up-on-your-staging-server).
+>
+> **For security reasons, this hook should _never_ be used in a true production environment that touches real users.**
 
 
 ## Install
@@ -18,6 +20,12 @@ In your Sails project:
 
 ```
 npm install sails-hook-dev --save-dev
+```
+
+^^ That will install this hook as a dev dependency, for local development _only_.  If you also want to use sails-hook-dev somewhere else (like in your staging environment), then instead use:
+
+```
+npm install sails-hook-dev
 ```
 
 ## Usage
