@@ -400,7 +400,7 @@ module.exports = function (sails) {
 
           new Promise(function(resolve, reject){
             setTimeout(function() {
-              reject(new Error('This is a deliberately-unhandled promise rejection.  This occurred at: '+new Date());
+              reject(new Error('This is a deliberately-unhandled promise rejection.  This occurred at: '+new Date()));
             }, 0);//_∏_
           });//_∏_
 
@@ -427,7 +427,7 @@ module.exports = function (sails) {
             return res.notFound();
           }//-•
 
-          res.serverError(new Error('This is a deliberate 500 error response (caused using sails-hook-dev).  This occurred at: '+new Date());
+          res.serverError(new Error('This is a deliberate 500 error response (caused using sails-hook-dev).  This occurred at: '+new Date()));
 
         },
 
