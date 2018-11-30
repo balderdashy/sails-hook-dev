@@ -2,8 +2,9 @@
  * Module dependencies
  */
 
+var EventEmitter = require('events').EventEmitter;
 var path = require('path');
-var _ = require('lodash');
+var _ = require('@sailshq/lodash');
 var fsx = require('fs-extra');
 var rttc = require('rttc');
 var formatMemoryUsageDictionary = require('./private/format-memory-usage-dictionary');
@@ -98,6 +99,10 @@ module.exports = function (sails) {
 
             '<h3>Operational / debugging actions:</h3>'+'<br/>'+
             '<a href="/dev/throw-uncaught">Deliberately crash this Sails/Node.js process by throwing an uncaught exception</a> <em>(this simulates an uncaught error thrown in an asynchronous callback)</em>'+'<br/>'+
+            '<a href="/dev/emit-uncaught-error-event">Deliberately crash this Sails/Node.js process by emitting an unhandled "error" event</a> <em>(this simulates an unhandled "error" event emitted by an EventEmitter such as a stream -- a common source of production issues)</em>'+'<br/>'+
+            '<a href="/dev/reject-unhandled">Deliberately cause an unhandled promise rejection</a> <em>(this can sometimes happen when asynchronous code- usually from within 3rd party dependencies- doesn\'t handle its errors properly)</em>'+'<br/>'+
+            '<a href="/dev/respond-500">Respond with a 500 status code</a> <em>(useful for double-checking that log monitoring tools are working properly, if you have any set up)</em>'+'<br/>'+
+            '<a href="/dev/missing-await">Call a parley-backed asynchronous method, but deliberately forget to use "await"</a> <em>(this simulates what happens when application code accidentally leaves out an "await")</em>'+'<br/>'+
             '<a href="/dev/dont-respond">Send a request to an endpoint which deliberately never sends a response</a> <em>(will timeout once `res.timeout` has elapsed, or 120 seconds by default)</em>'+'<br/>'+
             '<a href="/dev/peg">Deliberately lock up the server process by overwhelming its CPU (e.g. `while(true)`)</a>'+'<br/>'+
             '<a href="/dev/overflow-stack">Deliberately overflow the call stack by simulating a runaway recursive function</a>'+'<br/>'+
@@ -337,9 +342,9 @@ module.exports = function (sails) {
 
           setTimeout(function (){
 
-            throw new Error('This is a deliberately-uncaught error designed to crash the process (i.e. it was thrown from inside of an asynchronous callback).  This occurred at: '+new Date());
+            throw new Error('This is a deliberately-uncaught error designed to crash the process (i.e. it was thrown from inside of an asynchronous callback).  This occurred at: '+new Date());//•
 
-          }, 0);
+          }, 0);//_∏_
 
           // ----------------------------------------------------------------------------------------
           // Note that it doesnt matter whether we send a response (e.g. `res.ok()`) or not--
@@ -351,9 +356,94 @@ module.exports = function (sails) {
           // we make 100% sure by doing an additional assertion.
           setTimeout(function (){
 
+            throw new Error('This should never run, because the process should have crashed by now.');//•
+
+          }, 1000);//_∏_
+
+        },
+
+
+        // Crash the Node process by emitting an uncaught "error" event, causing the process to terminate w/ a non-zero exit code.
+        // > This is useful for simulating an "error" event emitted by a stream or other EventEmitter.
+        '/dev/emit-uncaught-error-event': function(req, res) {
+          if (process.env.NODE_ENV === 'production' && !sails.config.dev.enableInProduction) {
+            return res.notFound();
+          }//-•
+
+
+          sails.log.warn('About to emit a deliberately-unhandled "error" event designed to crash the process (i.e. creating an EventEmitter such as a stream, making it emit an "error" event, but then not handling that "error" event anywhere).  This occurred at: '+new Date());
+          var nastyLittleEmitter = new EventEmitter();
+          nastyLittleEmitter.emit('error');//•
+
+          // ----------------------------------------------------------------------------------------
+          // Note that it doesnt matter whether we send a response (e.g. `res.ok()`) or not--
+          // If the "error" event is omitted after we already sent the response, it makes
+          // no difference (the server would crash just the same).
+          // ----------------------------------------------------------------------------------------
+
+          // As a point of sanity, and in case of any weird/deprecated Node error domains living in userland,
+          // we make 100% sure by doing an additional assertion.
+          setTimeout(function (){
+
             throw new Error('This should never run, because the process should have crashed by now.');
 
           }, 1000);
+
+        },
+
+
+        // Run a promise that causes an unhandled rejection
+        '/dev/reject-unhandled': function(req, res) {
+          if (process.env.NODE_ENV === 'production' && !sails.config.dev.enableInProduction) {
+            return res.notFound();
+          }//-•
+
+          new Promise(function(resolve, reject){
+            setTimeout(function() {
+              reject(new Error('This is a deliberately-unhandled promise rejection.  This occurred at: '+new Date());
+            }, 0);//_∏_
+          });//_∏_
+
+          // ----------------------------------------------------------------------------------------
+          // Note that it doesnt matter whether we send a response (e.g. `res.ok()`) or not--
+          // If the uncaught exception occurs after we already sent the response, it makes
+          // no difference (the server would crash just the same).
+          // ----------------------------------------------------------------------------------------
+
+          // As a point of sanity, and in case of any weird/deprecated Node error domains living in userland,
+          // we make 100% sure by doing an additional assertion.
+          setTimeout(function (){
+
+            res.ok('Caused an unhandled promise rejection, which should have already gone off by now (check your logs).');//•
+
+          }, 1000);//_∏_
+
+        },
+
+
+        // Respond with a 500 error
+        '/dev/respond-500': function(req, res) {
+          if (process.env.NODE_ENV === 'production' && !sails.config.dev.enableInProduction) {
+            return res.notFound();
+          }//-•
+
+          res.serverError(new Error('This is a deliberate 500 error response (caused using sails-hook-dev).  This occurred at: '+new Date());
+
+        },
+
+
+        // Deliberately omit "await"
+        '/dev/missing-await': function(req, res) {
+          if (process.env.NODE_ENV === 'production' && !sails.config.dev.enableInProduction) {
+            return res.notFound();
+          }//-•
+
+          if (!_.isFunction(sails.renderView)) {
+            throw new Error('Could not deliberately simulate missing "await", because the sample function that sails-hook-dev tries to use (sails.renderView) is missing or invalid!  Before trying this again, make sure you have the latest version of Sails installed, with the "views" hook enabled.');
+          }
+          sails.renderView();
+
+          res.ok('In ~15 seconds or so, a warning will appear in your logs with a stack trace designed to help you locate and fix the missing "await" in your code.');
 
         },
 
