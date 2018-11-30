@@ -95,11 +95,12 @@ module.exports = function (sails) {
             '<a href="/dev/config">See all configured settings (`sails.config`)</a>'+'<br/>'+
             '<a href="/dev/env">See all process environment variables (`process.env`)</a>'+'<br/>'+
             '<a href="/dev/memory">See the process\'s current memory usage (`process.memoryUsage()`)</a>'+'<br/>'+
+            '<a href="/dev/node">See the process\'s Node version and other engine release info (`process.version` and `process.versions`)</a>'+'<br/>'+
             '<br/><hr/><br/>'+
 
             '<h3>Operational / debugging actions:</h3>'+'<br/>'+
             '<a href="/dev/throw-uncaught">Deliberately crash this Sails/Node.js process by throwing an uncaught exception</a> <em>(this simulates an uncaught error thrown in an asynchronous callback)</em>'+'<br/>'+
-            '<a href="/dev/emit-uncaught-error-event">Deliberately crash this Sails/Node.js process by emitting an unhandled "error" event</a> <em>(this simulates an unhandled "error" event emitted by an EventEmitter such as a stream -- a common source of production issues)</em>'+'<br/>'+
+            '<a href="/dev/emit-uncaught-error-event">Deliberately crash this Sails/Node.js process by emitting an unhandled "error" event</a> <em>(this simulates an unhandled "error" event emitted from within an asynchronous callback by an EventEmitter such as a stream -- a common source of production issues)</em>'+'<br/>'+
             '<a href="/dev/reject-unhandled">Deliberately cause an unhandled promise rejection</a> <em>(this can sometimes happen when asynchronous code- usually from within 3rd party dependencies- doesn\'t handle its errors properly)</em>'+'<br/>'+
             '<a href="/dev/respond-500">Respond with a 500 status code</a> <em>(useful for double-checking that log monitoring tools are working properly, if you have any set up)</em>'+'<br/>'+
             '<a href="/dev/missing-await">Call a parley-backed asynchronous method, but deliberately forget to use "await"</a> <em>(this simulates what happens when application code accidentally leaves out an "await")</em>'+'<br/>'+
@@ -206,6 +207,18 @@ module.exports = function (sails) {
           }//-•
 
           return res.json(formatMemoryUsageDictionary(process.memoryUsage()));
+        },
+
+        // Get Node version info & other engine runtime release info
+        'get /dev/node': function(req, res) {
+          if (process.env.NODE_ENV === 'production' && !sails.config.dev.enableInProduction) {
+            return res.notFound();
+          }//-•
+
+          return res.json({
+            'process.version  (the Node.js version in use by the process running this Sails app)': process.version,
+            'process.versions  (other version info about the installed version of Node.js)': process.versions,
+          });
         },
 
         // Get actual version of dependencies in the node_modules folder
@@ -370,10 +383,13 @@ module.exports = function (sails) {
             return res.notFound();
           }//-•
 
+          setTimeout(function (){
 
-          sails.log.warn('About to emit a deliberately-unhandled "error" event designed to crash the process (i.e. creating an EventEmitter such as a stream, making it emit an "error" event, but then not handling that "error" event anywhere).  This occurred at: '+new Date());
-          var nastyLittleEmitter = new EventEmitter();
-          nastyLittleEmitter.emit('error');//•
+            sails.log.warn('About to emit a deliberately-unhandled "error" event designed to crash the process (i.e. creating an EventEmitter such as a stream, making it emit an "error" event, but then not handling that "error" event anywhere).  This occurred at: '+new Date());
+            var nastyLittleEmitter = new EventEmitter();
+            nastyLittleEmitter.emit('error');//•
+
+          }, 0);//_∏_
 
           // ----------------------------------------------------------------------------------------
           // Note that it doesnt matter whether we send a response (e.g. `res.ok()`) or not--
