@@ -1,0 +1,26 @@
+name: Test
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  memory:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['4', '6', '8', '10', '22', '24']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - run: npm install --ignore-scripts
+      - run: npm test
+      - name: Reject the unused formatter CLI dependency chain
+        run: node -e "['pretty-bytes','meow','trim-newlines'].forEach(function (name) { try { require.resolve(name); } catch (err) { if (err.code === 'MODULE_NOT_FOUND') { return; } throw err; } throw new Error(name + ' is still installed'); });"

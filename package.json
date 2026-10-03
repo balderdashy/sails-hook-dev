@@ -4,7 +4,7 @@
   "description": "Hook for Sails.js full of development utilities.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"This hook does not have any tests.  Feel free to add some via pull request\""
+    "test": "node test/memory.js"
   },
   "keywords": [
     "sails.js",
@@ -22,7 +22,6 @@
   "dependencies": {
     "@sailshq/lodash": "^3.10.3",
     "fs-extra": "0.30.0",
-    "pretty-bytes": "1.0.4",
     "rttc": "^10.0.0-0"
   },
   "repository": {
