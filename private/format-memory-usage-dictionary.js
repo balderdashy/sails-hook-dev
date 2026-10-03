@@ -2,7 +2,7 @@
  * Module dependencies
  */
 
-var prettyBytes = require('pretty-bytes');
+var prettyBytes = require('./format-bytes');
 
 
 /**
